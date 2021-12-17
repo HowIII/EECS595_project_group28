@@ -1,5 +1,5 @@
-# EECS595 project: Improving Verifiability of TRIP with Data Augmentation and Graph Neural Networks (group28)
-This repo is cloned from (Verifiable-Coherent-NLU)[https://github.com/sled-group/Verifiable-Coherent-NLU] and modify some codes to add two new approaches.
+# EECS595 project: Improving Verifiability of TRIP with Data Augmentation and Graph Neural Networks (Group28)
+This repo is cloned from [Verifiable-Coherent-NLU](https://github.com/sled-group/Verifiable-Coherent-NLU) and modify some codes to add two new approaches.
 
 ## Getting Started
 The data augmentation result can be reproduced using the jupyter notebook [TRIP_Data_Augmentation.ipynb](https://github.com/HowIII/EECS595_project_group28/blob/main/TRIP_Data_Augmentation.ipynb), which we ran in Colab with Python 3.7.  

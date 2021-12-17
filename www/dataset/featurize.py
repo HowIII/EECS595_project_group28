@@ -7,7 +7,11 @@ import progressbar
 from time import sleep
 from copy import deepcopy
 import numpy as np
-
+from torch_geometric.utils import from_networkx
+import networkx as nx
+from nltk.parse.stanford import StanfordDependencyParser
+from tqdm import tqdm
+import re
 
 # Creates tensor dataset from featurized dataset
 def get_tensor_dataset(dataset, label_key='plausible', add_spans=False, add_segment_ids=False, masked_lm_params=None):
@@ -314,26 +318,36 @@ def add_bert_features_tiered(dataset, tokenizer, seq_length, add_segment_ids=Fal
   return dataset  
 
 
-# def extract_graph(sentence,reference):
-#   jar_path = '../../stanford-corenlp-4.2.2/stanford-corenlp-4.2.2.jar'
-#   models_jar_path = '../../stanford-corenlp-4.2.2-models-english.jar'
-#   parser = StanfordDependencyParser(path_to_jar = jar_path, path_to_models_jar = models_jar_path)
-#   result = parser.raw_parse(sentence)
-#   dependency = result.__next__()
-#   G = dependency.nx_graph().reverse()
-#   H = nx.Graph(G)
-#   # words = re.findall(r'\w+', sentence)
-#   # labels = {index + 1: words[index] for index in range(len(words))}
-#   labels = dependency.nx_labels
-#   node_attr = np.array([reference[value.lower()] for key,value in labels.items()])
-#   torch_G = from_networkx(H)
-#   torch_G['x'] = torch.Tensor(node_attr)
-#   print(torch_G)
-#   return torch_G, labels
+def extract_graph(sentence,reference,jar_path,models_jar_path):
+  sentence = re.sub(r'[^\w\s]', '', sentence)
+  parser = StanfordDependencyParser(path_to_jar = jar_path, path_to_models_jar = models_jar_path)
+  result = parser.raw_parse(sentence)
+  dependency = result.__next__()
+  G = dependency.nx_graph().reverse()
+  H = nx.Graph(G)
+  labels = dependency.nx_labels
+  print(labels)
 
-# def add_dependency_graph(tiered_dataset,cn_nb):
-#   for p in tiered_dataset:
-#     for ex in tiered_dataset[p]:
+  node_attr=[]
+  for key in list(labels.keys()):
+    try:
+      node_attr.append(reference[labels[key].lower()])
+    except:
+      node_attr.append(np.ones(300))
+  torch_G = from_networkx(H)
+  torch_G['x'] = torch.Tensor(node_attr)
+  print(torch_G)
+  return torch_G, labels
+
+def add_dependency_graph(tiered_dataset,cn_nb,jar_path, models_jar_path):
+  for p in tiered_dataset:
+    for ex in tqdm(tiered_dataset[p]):
+      for story in ex['stories']:
+        story['dep_graph'] = []
+        story['label_list'] = []
+        for sent in story['sentences']:
+          extracted_g, extracted_label = extract_graph(sent,reference=cn_nb,jar_path=jar_path,models_jar_path=models_jar_path)
+          story['dep_graph'].append(extracted_g)
+          story['label_list'].append(extracted_label)
+  return tiered_dataset
       
-
-

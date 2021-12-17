@@ -3,11 +3,22 @@ This repo is cloned from [Verifiable-Coherent-NLU](https://github.com/sled-group
 
 ## Getting Started
 The data augmentation result can be reproduced using the jupyter notebook [TRIP_Data_Augmentation.ipynb](https://github.com/HowIII/EECS595_project_group28/blob/main/TRIP_Data_Augmentation.ipynb), which we ran in Colab with Python 3.7.  
+### Incorporating LMs and GNNs
+The conda virtual enviroment can be installed by the following commands:
+```
+conda env create -f trip_ours_env.yml
+```
+#### Graph construction and data preprocessing
+__Data preparation__: To perform dependency parsing, we utilize the Stanford coreNLP dependency parser, and necessary files can be downloaded from https://drive.google.com/drive/folders/148bfSBczJhcHpgtPz98LA8am0MJAfTUW?usp=sharing (stanford-corenlp-4.2.2-models-english.jar and stanford-corenlp-4.2.2.zip). The ConceptNet Numberbatch embedding can also be downloaded from https://drive.google.com/drive/folders/148bfSBczJhcHpgtPz98LA8am0MJAfTUW?usp=sharing (numberbatch-en-19.08.txt).
+As the graph construction process takes several hours, we have provided the preprocessed TRIP data in https://drive.google.com/drive/folders/148bfSBczJhcHpgtPz98LA8am0MJAfTUW?usp=sharing (tiered_dataset.pickle).
+To preprocess the raw TRIP data, run the following commands:
+```
+python data_preprocessing_graph.py --drive_path DRIVE_PATH --save_pkl_path PATH_TO_SAVE_PICKLE_FILE --cn_nb_path numberbatch-en-19.08.txt --jar_path stanford-corenlp-4.2.2/stanford-corenlp-4.2.2.jar --models_jar_path stanford-corenlp-4.2.2-models-english.jar
+```
 The GNN result can be reproduced by the following commands:
 ```
-python train_test_trip.py
+python train_test_trip.py --drive_path DRIVE_PATH --pkl_file_path tiered_dataset.pickle --cn_nb_path numberbatch-en-19.08.txt
 ```
-
 
 ### Python Dependencies
 The required dependencies for Colab are installed within the notebook, while the exhaustive list of dependencies for any setup is given in [requirements.txt](https://github.com/HowIII/EECS595_project_group28/blob/main/requirement.txt). Out of these, the minimal requirements can be installed in a new Anaconda environment by the following commands:

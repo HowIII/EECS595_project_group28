@@ -10,7 +10,7 @@ python train_test_trip.py
 
 
 ### Python Dependencies
-The required dependencies for Colab are installed within the notebook, while the exhaustive list of dependencies for any setup is given in [requirements.txt](requirements.txt). Out of these, the minimal requirements can be installed in a new Anaconda environment by the following commands:
+The required dependencies for Colab are installed within the notebook, while the exhaustive list of dependencies for any setup is given in [requirements.txt](https://github.com/HowIII/EECS595_project_group28/blob/main/requirement.txt). Out of these, the minimal requirements can be installed in a new Anaconda environment by the following commands:
 ```
 conda create --name tripPy python=3.7
 conda activate tripPy

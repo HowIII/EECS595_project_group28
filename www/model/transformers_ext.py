@@ -134,123 +134,6 @@ class DebertaForMultipleChoice(DebertaPreTrainedModel):
             attentions=outputs.attentions,
         )
 
-# def glorot(tensor):
-#     if tensor is not None:
-#         stdv = math.sqrt(6.0 / (tensor.size(-2) + tensor.size(-1)))
-#         tensor.data.uniform_(-stdv, stdv)
-
-
-# def zeros(tensor):
-#     if tensor is not None:
-#         tensor.data.fill_(0)
-
-
-# def softmax(src, index, num_nodes):
-#     """
-#     Given a value tensor: `src`, this function first groups the values along the first dimension
-#     based on the indices specified in: `index`, and then proceeds to compute the softmax individually for each group.
-#     """
-#     print('src', src)
-#     print('index', index)
-#     print('num_nodes', num_nodes)
-#     N = int(index.max()) + 1 if num_nodes is None else num_nodes
-#     print('N', N)
-#     print(f"{scatter(src, index, dim=0, dim_size=N, reduce='max')}")
-#     print(f"{scatter(src, index, dim=0, dim_size=N, reduce='max')[index]}")
-#     out = src - scatter(src, index, dim=0, dim_size=N, reduce='max')[index]
-#     print('out', out)
-#     out = out.exp()
-#     print('out', out)
-#     out_sum = scatter(out, index, dim=0, dim_size=N, reduce='sum')[index]
-#     print('out_sum', out_sum)
-#     print(f'return: {out / (out_sum + 1e-16)}')
-#     return out / (out_sum + 1e-16)
-
-
-# class GATConv(MessagePassing):
-#     def __init__(self,
-#                  in_channels,
-#                  out_channels,
-#                  heads=1,
-#                  negative_slope=0.2,
-#                  dropout=0.,
-#                  bias=True):
-#         super(GATConv, self).__init__(node_dim=0, aggr='add')  # "Add" aggregation.
-
-#         self.in_channels = in_channels
-#         self.out_channels = out_channels
-#         self.heads = heads
-#         self.negative_slope = negative_slope
-#         self.dropout = dropout
-
-#         self.weight = Parameter(torch.Tensor(in_channels, heads * out_channels))  # \theta
-#         self.att = Parameter(torch.Tensor(1, heads, 2 * out_channels))  # \alpha: rather than separate into two parts
-
-#         if bias:
-#             self.bias = Parameter(torch.Tensor(out_channels))
-#         else:
-#             self.register_parameter('bias', None)
-
-#         self.reset_parameters()
-
-#     def reset_parameters(self):
-#         glorot(self.weight)
-#         glorot(self.att)
-#         zeros(self.bias)
-
-#     def forward(self, x, edge_index, size=None):
-#         # 1. Linearly transform node feature matrix (XΘ)
-#         x = torch.mm(x, self.weight).view(-1, self.heads, self.out_channels)   # N x H x emb(out)
-#         print('x', x)
-
-#         # 2. Add self-loops to the adjacency matrix (A' = A + I)
-#         if size is None and torch.is_tensor(x):
-#             edge_index, _ = remove_self_loops(edge_index)  # 2 x E
-#             print('edge_index', edge_index)
-#             edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))  # 2 x (E+N)
-#             print('edge_index', edge_index)
-
-#         # 3. Start propagating messages
-#         return self.propagate(edge_index, x=x, size=size)  # 2 x (E+N), N x H x emb(out), None
-
-#     def message(self, x_i, x_j, size_i, edge_index_i):  # Compute normalization (concatenate + softmax)
-#         # x_i, x_j: after linear x and expand edge (N+E) x H x emb(out)
-#         # = N x H x emb(in) @ emb(in) x emb(out) (+) E x H x emb(out)
-#         # edge_index_i: the col part of index
-#         # size_i: number of nodes
-#         print('x_i', x_i)
-#         print('x_j', x_j)
-#         print('size_i', size_i)
-#         print('edge_index_i', edge_index_i)
-
-#         x_i = x_i.view(-1, self.heads, self.out_channels)
-#         alpha = (torch.cat([x_i, x_j], dim=-1) * self.att).sum(dim=-1)  # (E+N) x H x (emb(out)+ emb(out))
-#         print('alpha', alpha)
-#         alpha = F.leaky_relu(alpha, self.negative_slope)  # LeakReLU only changes those negative.
-#         print('alpha', alpha)
-#         alpha = softmax(alpha, edge_index_i, num_nodes=size_i)  # Computes a sparsely evaluated softmax
-#         print('alpha', alpha)
-
-#         if self.training and self.dropout > 0:
-#             alpha = F.dropout(alpha, p=self.dropout, training=True)
-
-#         print(f'x_j*alpha {x_j * alpha.view(-1, self.heads, 1)}')
-
-#         return x_j * alpha.view(-1, self.heads, 1)
-#         # each row is norm(embedding) vector for each edge_index pair (detail in the following)
-
-#     def update(self, aggr_out):  # 4. Return node embeddings (average heads)
-#         # Based on the directed graph, Node 0 gets message from three edges and one self_loop
-#         # for Node 1, 2, 3: since they do not get any message from others, so only self_loop
-
-#         print('aggr_out', aggr_out)  # (E+N) x H x emb(out)
-#         aggr_out = aggr_out.mean(dim=1)  # to average multi-head
-#         print('aggr_out', aggr_out)
-
-#         if self.bias is not None:
-#             aggr_out = aggr_out + self.bias
-#         return aggr_out
-
 class Net(torch.nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -299,45 +182,45 @@ class TripGAT(nn.Module):
             count_k = count_j + k
             # print('type of graph_labels: {}'.format(type(graph_labels_i)))
             # print('k: {}'.format(k))
+#             graph_label = graph_labels_i[i][k]
+#             if [word in graph_label.keys() for word in e_split] == [1]*len(e_split):
+#               # print('Judging True')
+#               # graph = dep_graphs_i[i][k]
+#               graph_label = graph_labels_i[i][k]
+#               graph = dep_graphs_i[i][k].to(input_ids.device)
+#               x_g = graph['x']
+#               edge_index_g = graph['edge_index']
+#               emb_all = self.gat_model(x_g,edge_index_g)
+#               for word in e_split:
+#                 word_node = graph_label[word]
+#                 emb_matrix[count_k] += (emb_all[(word_node-1)])/(len(e_split))
+#             else:
+#               try:
+#                 cn_word = torch.from_numpy(cn_nb[word]).to(input_ids.device)
+#                 emb_linear = self.project_layer(cn_word)
+#                 emb_matrix[count_k] += emb_linear/(len(e_split))
+#               except:
+#                 emb_matrix[count_k] += (torch.ones((self.emb_size))).to(input_ids.device)/(len(e_split))
+
+
             graph_label = graph_labels_i[i][k]
-            if [word in graph_label.keys() for word in e_split] == [1]*len(e_split):
-              # print('Judging True')
-              # graph = dep_graphs_i[i][k]
-              graph_label = graph_labels_i[i][k]
-              graph = dep_graphs_i[i][k].to(input_ids.device)
-              x_g = graph['x']
-              edge_index_g = graph['edge_index']
-              emb_all = self.gat_model(x_g,edge_index_g)
-              for word in e_split:
+            emb_matrix[count_k] = emb_matrix[count_k] - 1
+            graph = dep_graphs_i[i][k].to(input_ids.device)
+            x_g = graph['x']
+            edge_index_g = graph['edge_index']
+            emb_all = self.gat_model(x_g,edge_index_g)
+            # print('in progress')
+            for word in e_split:
+              if word in graph_label.keys():
                 word_node = graph_label[word]
                 emb_matrix[count_k] += (emb_all[(word_node-1)])/(len(e_split))
-            else:
-              try:
-                cn_word = torch.from_numpy(cn_nb[word]).to(input_ids.device)
-                emb_linear = self.project_layer(cn_word)
-                emb_matrix[count_k] += emb_linear/(len(e_split))
-              except:
-                emb_matrix[count_k] += (torch.ones((self.emb_size))).to(input_ids.device)/(len(e_split))
-
-
-            # graph_label = graph_labels_i[i][k]
-            # emb_matrix[count_k] = emb_matrix[count_k] - 1
-            # graph = dep_graphs_i[i][k].to(input_ids.device)
-            # x_g = graph['x']
-            # edge_index_g = graph['edge_index']
-            # emb_all = self.gat_model(x_g,edge_index_g)
-            # # print('in progress')
-            # for word in e_split:
-            #   if word in graph_label.keys():
-            #     word_node = graph_label[word]
-            #     emb_matrix[count_k] += (emb_all[(word_node-1)])/(len(e_split))
-            #   else:
-            #     try:
-            #       cn_word = torch.from_numpy(cn_nb[word]).to(input_ids.device)
-            #       emb_linear = self.project_layer(cn_word)
-            #       emb_matrix[count_k] += emb_linear/(len(e_split))
-            #     except:
-            #       emb_matrix[count_k] += (torch.ones((self.emb_size))).to(input_ids.device)/(len(e_split))
+              else:
+                try:
+                  cn_word = torch.from_numpy(cn_nb[word]).to(input_ids.device)
+                  emb_linear = self.project_layer(cn_word)
+                  emb_matrix[count_k] += emb_linear/(len(e_split))
+                except:
+                  emb_matrix[count_k] += (torch.ones((self.emb_size))).to(input_ids.device)/(len(e_split))
 
             # if [word in graph_label.keys() for word in e_split] == [1]*len(e_split):
             #   # print('Judging True')
